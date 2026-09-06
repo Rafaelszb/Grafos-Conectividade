@@ -118,7 +118,7 @@ class GrafoMatriz:
     # IMPRIMIR MATRIZ
     def imprimirGrafo(self):
         print("\nMatriz de Adjacência:")
-        print("   " + " ".join(self.vertices))
+        print("   " + "  ".join(self.vertices))
         for idx, linha in enumerate(self.matriz):
             print(self.vertices[idx], linha)
 
