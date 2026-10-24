@@ -1,10 +1,14 @@
+# ==========================================
+# SCRIPT PRINCIPAL DE INTERAÇÃO (MENU)
 # Trabalho de Grafos Python
-# Guilherme Melo de Jesus e Rafael de Souza Barbosa
+# Autores: Guilherme Melo de Jesus e Rafael de Souza Barbosa
+# ==========================================
 
 import GrafoMatriz
 
-# MENU DO GRAFO CRIADO
+
 def menu():
+    # Menu
     print("\n" + "=" * 30)
     print("1 - Inserir Vértice")
     print("2 - Remover Vértice")
@@ -17,20 +21,29 @@ def menu():
     print("9 - Retorna Vizinhos")
     print("10 - BUSCAS")
     print("11 - Fecho Transitivo Direto")
-    print("12 - Fecho Transitivo Inverso") 
+    print("12 - Fecho Transitivo Inverso")
+    print("13 - Verificar Planaridade")
+    print("14 - Verificar Conexidade")
+    print("15 - Coloração do Grafo")
     print("0 - SAIR DO GRAFO")
     print("=" * 30)
 
     try:
+        # Recebe a entrada do usuário
         menuGrafo = int(input("Escolha uma opção: "))
         return menuGrafo
     except ValueError:
+        # Retorna -1 se o usuário digitar letras ou caracteres inválidos
         return -1
 
 
 def gerenciar_grafo(grafo, ponderado, direcionado):
-    """Executa o loop de operações para o grafo criado."""
+    """
+    Controla o loop de execução das operações do grafo instanciado.
+    Fica rodando o menu até que o usuário escolha a opção 0 para sair.
+    """
     menuGrafo = menu()
+
     while menuGrafo != 0:
 
         # 1 - INSERIR VÉRTICE
@@ -52,7 +65,7 @@ def gerenciar_grafo(grafo, ponderado, direcionado):
             else:
                 print("\nVértice não existe!")
 
-        # 3 - ROTULAR VÉRTICE
+        # 3 - ROTULAR VÉRTICE (Renomear)
         elif menuGrafo == 3:
             rotulo = str(input("Insira o vértice a ser editado: ")).strip()
             novo_rotulo = str(input("Insira o novo rótulo: ")).strip()
@@ -69,13 +82,14 @@ def gerenciar_grafo(grafo, ponderado, direcionado):
         elif menuGrafo == 5:
             origem = str(input("Insira o Vértice de Origem: ")).strip()
             destino = str(input("Insira o Vértice de Destino: ")).strip()
-            peso = 1
+            peso = 1  # Peso padrão caso o grafo não seja ponderado
 
+            # Se o grafo aceitar pesos, solicita o valor numérico
             if ponderado:
                 try:
                     peso = int(input("Insira o Peso da Aresta: "))
                 except ValueError:
-                    print("Peso inválido. Usando valor 1.")
+                    print("Peso inválido. Usando valor padrão 1.")
 
             if grafo.inserirAresta(origem, destino, peso):
                 print(f"\nAresta inserida com sucesso entre '{origem}' e '{destino}'!")
@@ -122,7 +136,7 @@ def gerenciar_grafo(grafo, ponderado, direcionado):
             else:
                 print("\nVértice não encontrado no grafo.")
 
-        # 10 - BUSCAS
+        # 10 - BUSCAS (BFS ou DFS)
         elif menuGrafo == 10:
             inicio = str(input("Insira o Vértice de Início para a busca: ")).strip()
             if not grafo.existeVertice(inicio):
@@ -159,10 +173,41 @@ def gerenciar_grafo(grafo, ponderado, direcionado):
             else:
                 print("\nVértice não existe!")
 
+        # 13 - VERIFICAR PLANARIDADE
+        elif menuGrafo == 13:
+            if grafo.verificarPlanaridade():
+                print("\nO Grafo é Planar")
+            else:
+                print("\nO Grafo Não é Planar")
+
+        # 14 - VERIFICAR CONEXIDADE
+        elif menuGrafo == 14:
+            resultado = grafo.verificarConexo()
+            print("É conexo?", resultado["conexo"])
+            print("Componentes conexas:", resultado["componentes"])
+
+        # 15 - COLORAÇÃO DO GRAFO
+        elif menuGrafo == 15:
+            coloracao = grafo.coloracaoGrafo()
+            if len(coloracao) == 0:
+                print("\nGrafo sem vértices para colorir.")
+            else:
+                print("\nResultados da Coloração do Grafo:")
+                max_cor = 0
+                for v in coloracao:
+                    cor = coloracao[v]
+                    print(f"Vértice '{v}': Cor {cor}")
+                    if cor > max_cor:
+                        max_cor = cor
+                print(f"\nQuantidade total de cores usadas: {max_cor}")
+
+        # Pede uma nova opção para continuar no loop do menu
         menuGrafo = menu()
 
 
-# INÍCIO DO PROGRAMA
+# ==========================================
+# INÍCIO DO PROGRAMA (MENU PRINCIPAL)
+# ==========================================
 while True:
     print("\n--- TRABALHO DE GRAFOS ---")
     print("1 - Criar Grafo em Matriz Manualmente")
@@ -175,22 +220,24 @@ while True:
         print("Opção inválida.")
         continue
 
+    # Encerra o programa se a opção for 0
     if opcao == 0:
         print("Saindo do programa...")
         break
 
+    # Coleta as configurações iniciais necessárias para instanciar o grafo
     dir_input = str(input("O Grafo é Direcionado? (S/N): ")).strip().upper()
     pond_input = str(input("O Grafo é Ponderado? (S/N): ")).strip().upper()
 
     direcionado = (dir_input == "S")
     ponderado = (pond_input == "S")
 
-    # 1 - MATRIZ MANUAL
+    # Opção 1: Inicializa um grafo vazio para inserção manual
     if opcao == 1:
         grafo = GrafoMatriz.GrafoMatriz(ponderado, direcionado)
         gerenciar_grafo(grafo, ponderado, direcionado)
 
-    # 2 - MATRIZ AUTOMÁTICO
+    # Opção 2: Cria um grafo pré-populado automaticamente com vértices e arestas
     elif opcao == 2:
         grafo = GrafoMatriz.GrafoMatriz(ponderado, direcionado)
         for v in ["A", "B", "C", "D", "E"]:
@@ -204,3 +251,5 @@ while True:
 
         print("\n[Grafo em Matriz gerado com sucesso!]")
         gerenciar_grafo(grafo, ponderado, direcionado)
+    else:
+        print("Opção inválida. Tente novamente.")
