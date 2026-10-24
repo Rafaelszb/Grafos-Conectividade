@@ -1,203 +1,261 @@
+# ==========================================
+# CLASSE GRAFO MATRIZ DE ADJACÊNCIA
+# Autores: Guilherme Melo de Jesus e Rafael de Souza Barbosa
+# ==========================================
+
+import matplotlib as plt
+import networkx as nx
+
+
 class GrafoMatriz:
     def __init__(self, ponderado=False, direcionado=False):
-        self.vertices = []          # Lista de rótulos dos vértices
-        self.matriz = []            # Matriz de adjacência
-        self.ponderado = ponderado
-        self.direcionado = direcionado
+        # Configurações iniciais do grafo
+        self.ponderado = ponderado  # Define se as arestas aceitam pesos diferentes de 1
+        self.direcionado = direcionado  # Define se as arestas possuem direção única
+        self.vertices = []  # Armazena os rótulos dos vértices (ex: ['A', 'B', 'C'])
+        self.matriz = []  # Matriz de adjacência em formato de lista de listas
 
-    # INSERIR VÉRTICE
-    def inserirVertice(self, rotulo):
-
-        self.vertices.append(rotulo)
-
-        # Adiciona nova linha e coluna na matriz
-        tamanho = len(self.vertices)
-        for linha in self.matriz:
-            linha.append(0)
-        self.matriz.append([0] * tamanho)
-        return True
-
-    # REMOVER VÉRTICE
-    def removerVertice(self, rotulo):
-        if rotulo not in self.vertices:
-            return False
-        indice = self.vertices.index(rotulo)
-
-        # Remove linha e coluna da matriz
-        self.matriz.pop(indice)
-        for linha in self.matriz:
-            linha.pop(indice)
-
-        # Remove vértice da lista
-        self.vertices.remove(rotulo)
-        return True
-
-    # INSERIR ARESTA
-    def inserirAresta(self, origem, destino, peso=1):
-
-        # Verifica se os vértices de origem e destino existe no gráfico
-        if origem not in self.vertices or destino not in self.vertices:
-            return False
-
-        # Pega o valor de índice da origem e destino
-        i = self.vertices.index(origem)
-        j = self.vertices.index(destino)
-
-        # Atribui o valor do peso na aresta se for ponderado, do contrário atribui 1
-        valor = peso if self.ponderado else 1
-        self.matriz[i][j] = valor
-
-        # Se não for direcionado atribui do destino à origem também
-        if not self.direcionado:
-            self.matriz[j][i] = valor
-        return True
-
-    # REMOVER ARESTA
-    def removerAresta(self, origem, destino):
-
-        # Se o vértice de Origem ou Destino não existir na lista de vértices
-        if origem not in self.vertices or destino not in self.vertices:
-            return False
-
-        # Pega o índice na lista auxiliar para usar na matriz
-        i = self.vertices.index(origem)
-        j = self.vertices.index(destino)
-
-        # Remove aresta zerando a célula da matriz
-        self.matriz[i][j] = 0
-
-        # Se não for um grafo direcionado
-        if not self.direcionado:
-
-            # Também remove aresta no sentido inverso na matriz
-            self.matriz[j][i] = 0
-
-        return True
-
-    # EXISTE ARESTA
-    def existeAresta(self, origem, destino):
-        if origem not in self.vertices or destino not in self.vertices:
-            return False
-        i = self.vertices.index(origem)
-        j = self.vertices.index(destino)
-        return self.matriz[i][j] != 0
-
-    def pesoAresta(self, origem, destino):
-
-        # Define a linha i e coluna j
-        i = self.vertices.index(origem)
-        j = self.vertices.index(destino)
-
-        return self.matriz[i][j]
-
-    # RETORNAR PESO
-    def retornarPeso(self, origem, destino):
-        if origem not in self.vertices or destino not in self.vertices:
-            return None
-        i = self.vertices.index(origem)
-        j = self.vertices.index(destino)
-        return self.matriz[i][j]
-
-    # RETORNAR VIZINHOS
-    def retornarVizinhos(self, vertice):
-        if vertice not in self.vertices:
-            return []
-    
-        vizinhos = []
-        idx_origem = self.vertices.index(vertice)
-    
-        for idx_destino, peso in enumerate(self.matriz[idx_origem]):
-            if peso is not None and peso != 0:
-                vizinhos.append(self.vertices[idx_destino])
-    
-        return vizinhos  # Recuado dentro do bloco do def
-
-    def retornaVertice(self, origem):
-        pass
-
-    # IMPRIMIR MATRIZ
-    def imprimirGrafo(self):
-        print("\nMatriz de Adjacência:")
-        print("   " + "  ".join(self.vertices))
-        for idx, linha in enumerate(self.matriz):
-            print(self.vertices[idx], linha)
-
-    # FUNÇÃO EXISTE VÉRTICE
     def existeVertice(self, rotulo):
+        # Validação simples para checar se o rótulo já consta na lista de vértices
         return rotulo in self.vertices
 
+    def inserirVertice(self, rotulo):
+        # Se o vértice já existir, aborta a operação retornando False
+        if self.existeVertice(rotulo):
+            return False
+
+        # Adiciona o novo rótulo na lista de vértices
+        self.vertices.append(rotulo)
+
+        # Como adicionamos um novo vértice, a matriz precisa crescer (ganhar uma nova coluna em cada linha existente)
+        for linha in self.matriz:
+            linha.append(0)  # 0 significa que inicialmente não há ligação com o novo vértice
+
+        # Agora criamos a linha correspondente ao vértice recém-adicionado
+        # O tamanho da linha deve ser igual ao número total de vértices atuais
+        nova_linha = [0] * len(self.vertices)
+        self.matriz.append(nova_linha)
+
+        return True
+
+    def removerVertice(self, rotulo):
+        # Garante que o vértice realmente existe antes de tentar apagar
+        if not self.existeVertice(rotulo):
+            return False
+
+        # Descobre qual é a posição (índice) numérica do vértice na lista
+        idx = self.vertices.index(rotulo)
+
+        # Remove o vértice da lista de rótulos
+        self.vertices.pop(idx)
+
+        # Remove a linha inteira correspondente a esse vértice na matriz
+        self.matriz.pop(idx)
+
+        # Remove a coluna correspondente a esse vértice em todas as outras linhas restantes
+        for linha in self.matriz:
+            linha.pop(idx)
+
+        return True
+
     def rotulaVertice(self, rotulo, novo_rotulo):
-        # Verifica se o vértice existe no Grafo
-        # Para cada Vértice no Grafo
-        for vertice in self.vertices:
+        # Verifica se o vértice antigo existe e se o novo nome escolhido já não está em uso
+        if not self.existeVertice(rotulo) or self.existeVertice(novo_rotulo):
+            return False
 
-            # Se o vértice existir
-            if vertice.rotulo == rotulo:
-                # Atualiza Rótulo
-                vertice.rotulo = novo_rotulo
-                return True
+        # Localiza o índice e substitui o nome antigo pelo novo na lista de vértices
+        idx = self.vertices.index(rotulo)
+        self.vertices[idx] = novo_rotulo
+        return True
 
-        # Senão retorna Falso
+    def existeAresta(self, origem, destino):
+        # Só podemos verificar a aresta se ambos os vértices existirem no grafo
+        if self.existeVertice(origem) and self.existeVertice(destino):
+            # Mapeia os rótulos para os índices da matriz
+            idx_origem = self.vertices.index(origem)
+            idx_destino = self.vertices.index(destino)
+
+            # Se o valor na matriz for diferente de 0, significa que a aresta existe
+            return self.matriz[idx_origem][idx_destino] != 0
+
         return False
-        
-    # BUSCA EM LARGURA (BFS)
+
+    def inserirAresta(self, origem, destino, peso=1):
+        # Verifica se os dois vértices informados existem
+        if self.existeVertice(origem) and self.existeVertice(destino):
+            idx_origem = self.vertices.index(origem)
+            idx_destino = self.vertices.index(destino)
+
+            # Insere o peso na posição de ida (origem -> destino)
+            self.matriz[idx_origem][idx_destino] = peso
+
+            # Se o grafo NÃO for direcionado, a aresta vale para os dois lados (matriz simétrica)
+            if not self.direcionado:
+                self.matriz[idx_destino][idx_origem] = peso
+
+            return True
+        return False
+
+    def removerAresta(self, origem, destino):
+        # Usa a verificação de existência para garantir que a aresta pode ser apagada
+        if self.existeAresta(origem, destino):
+            idx_origem = self.vertices.index(origem)
+            idx_destino = self.vertices.index(destino)
+
+            # Zera a posição na matriz (removendo a conexão)
+            self.matriz[idx_origem][idx_destino] = 0
+
+            # Se o grafo não for direcionado, zera também a volta
+            if not self.direcionado:
+                self.matriz[idx_destino][idx_origem] = 0
+
+            return True
+        return False
+
+    def retornarPeso(self, origem, destino):
+        # Checa se a aresta existe para evitar erros de índice ou valores inválidos
+        if self.existeAresta(origem, destino):
+            idx_origem = self.vertices.index(origem)
+            idx_destino = self.vertices.index(destino)
+            # Retorna exatamente o número salvo na matriz
+            return self.matriz[idx_origem][idx_destino]
+        return None
+
+    def retornarVizinhos(self, origem):
+        vizinhos = []
+        if self.existeVertice(origem):
+            idx_origem = self.vertices.index(origem)
+
+            # Percorre todas as colunas da linha do vértice de origem
+            for i in range(len(self.vertices)):
+                # Se o valor for diferente de 0, há uma aresta conectando ao vértice da coluna 'i'
+                if self.matriz[idx_origem][i] != 0:
+                    vizinhos.append(self.vertices[i])
+
+        return vizinhos
+
+    def imprimirGrafo(self):
+        # Imprime o cabeçalho superior com os nomes dos vértices alinhados às colunas
+        print("\n   ", "  ".join(self.vertices))
+        # Imprime cada linha da matriz precedida pelo rótulo do vértice correspondente
+        for i, linha in enumerate(self.matriz):
+            print(f"{self.vertices[i]} {linha}")
+
     def bfs(self, inicio):
-        if inicio not in self.vertices:
-            return []
+        # Busca em Largura (Breadth-First Search)
 
+        # Lista de vértices visitados
         visitados = []
+        # Fila de controle para visitar os nós por ordem de chegada (FIFO)
         fila = [inicio]
+        visitados.append(inicio)
 
-        while fila:
-            vertice = fila.pop(0)  # Remove do início (FIFO)
-            if vertice not in visitados:
-                visitados.append(vertice)
-                # Adiciona vizinhos não visitados à fila
-                for vizinho in self.retornarVizinhos(vertice):
-                    if vizinho not in visitados and vizinho not in fila:
-                        fila.append(vizinho)
+        while len(fila) > 0:
+            # Pega o primeiro elemento da fila para processar
+            vertice = fila.pop(0)
+
+            # Olha todos os vizinhos conectados a ele
+            for vizinho in self.retornarVizinhos(vertice):
+                # Se o vizinho ainda não foi visitado, adiciona na lista e joga no final da fila
+                if vizinho not in visitados:
+                    visitados.append(vizinho)
+                    fila.append(vizinho)
 
         return visitados
 
-    # BUSCA EM PROFUNDIDADE (DFS)
     def dfs(self, inicio, visitados=None):
-        if inicio not in self.vertices:
-            return []
-
+        # Busca em Profundidade (Depth-First Search) utilizando recursão
         if visitados is None:
             visitados = []
 
+        # Se o vértice atual ainda não foi visitado, marca ele
         if inicio not in visitados:
             visitados.append(inicio)
+
+            # Para cada vizinho, chama a DFS recursivamente aprofundando o caminho
             for vizinho in self.retornarVizinhos(inicio):
-                if vizinho not in visitados:
-                    self.dfs(vizinho, visitados)
+                self.dfs(vizinho, visitados)
 
         return visitados
-        
-    # OBTER TRANSPOSTO
-    def obterTransposto(self):
-        transposto = GrafoMatriz(self.ponderado, self.direcionado)
-        transposto.vertices = list(self.vertices)
-        n = len(self.vertices)
-        transposto.matriz = [[0] * n for _ in range(n)]
 
-        for i in range(n):
-            for j in range(n):
-                transposto.matriz[j][i] = self.matriz[i][j]
+    def fechoTransitivoDireto(self, vertice):
+        # O fecho transitivo direto utiliza a lógica da BFS para encontrar tudo o que é alcançável partindo do vértice
+        return self.bfs(vertice)
 
-        return transposto
+    def fechoTransitivoInverso(self, vertice):
+        visitados = []
+        fila = [vertice]
+        visitados.append(vertice)
 
-    # TRANSITIVO DIRETO
-    def fechoTransitivoDireto(self, v):
-        if not self.existeVertice(v):
-            return []
-        return self.dfs(v)
+        while len(fila) > 0:
+            atual = fila.pop(0)
+            idx_atual = self.vertices.index(atual)
 
-    # TRASITIVO INVERSO
-    def fechoTransitivoInverso(self, v):
-        if not self.existeVertice(v):
-            return []
-        grafo_inv = self.obterTransposto()
-        return grafo_inv.dfs(v)
-        
+            # Diferente do direto, aqui varremos as LINHAS da coluna do vértice atual
+            # para descobrir quem aponta PARA ele (origens)
+            for i in range(len(self.vertices)):
+                if self.matriz[i][idx_atual] != 0:
+                    v_origem = self.vertices[i]
+                    if v_origem not in visitados:
+                        visitados.append(v_origem)
+                        fila.append(v_origem)
+
+        return visitados
+
+    def verificarPlanaridade(self):
+        v = len(self.vertices)
+        if v <= 2:
+            return True  # Grafos com até 2 vértices são sempre planares
+
+        # Conta o total de arestas presentes na matriz
+        e = 0
+        for i in range(v):
+            for j in range(v):
+                if self.matriz[i][j] != 0:
+                    e += 1
+
+        # Se o grafo for não-direcionado, dividimos por 2 porque cada aresta foi contada duas vezes (ida e volta)
+        if not self.direcionado:
+            e = e // 2
+
+        # Aplicação da fórmula de Euler simplificada para grafos simples: e <= 3*v - 6
+        return e <= (3 * v - 6)
+
+    def verificarConexo(self):
+        if len(self.vertices) == 0:
+            return {"conexo": True, "componentes": []}
+
+        # Pega o primeiro vértice como ponto de partida
+        inicio = self.vertices[0]
+        # Roda a BFS para ver quais vértices conseguem ser alcançados a partir dele
+        alcancaveis = self.bfs(inicio)
+
+        # O grafo é considerado conexo se conseguimos alcançar todos os vértices existentes
+        conexo = len(alcancaveis) == len(self.vertices)
+        return {"conexo": conexo, "componentes": [alcancaveis]}
+
+    def coloracaoGrafo(self):
+        # Algoritmo Guloso de Coloração
+        coloracao = {}  # Dicionário que guarda a cor atribuída a cada vértice (ex: {'A': 1})
+
+        for vertice in self.vertices:
+            vizinhos = self.retornarVizinhos(vertice)
+
+            # Cria uma lista com as cores que os vizinhos diretos já estão usando
+            cores_vizinhos = []
+            for vizinho in vizinhos:
+                if vizinho in coloracao:
+                    cor = coloracao[vizinho]
+                    if cor not in cores_vizinhos:
+                        cores_vizinhos.append(cor)
+
+            # Procura a menor cor inteira positiva disponível (começando de 1)
+            # que não entre em conflito com as cores dos vizinhos
+            cor_livre = 1
+            while cor_livre in cores_vizinhos:
+                cor_livre += 1
+
+            # Atribui a cor escolhida ao vértice atual
+            coloracao[vertice] = cor_livre
+
+        return coloracao
