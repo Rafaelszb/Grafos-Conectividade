@@ -200,6 +200,7 @@ def gerenciar_grafo(grafo, ponderado, direcionado):
                     if cor > max_cor:
                         max_cor = cor
                 print(f"\nQuantidade total de cores usadas: {max_cor}")
+                grafo.plotarColoracao(coloracao)
 
         # Pede uma nova opção para continuar no loop do menu
         menuGrafo = menu()
