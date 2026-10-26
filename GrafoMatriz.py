@@ -3,7 +3,7 @@
 # Autores: Guilherme Melo de Jesus e Rafael de Souza Barbosa
 # ==========================================
 
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import networkx as nx
 
 
@@ -234,12 +234,75 @@ class GrafoMatriz:
         conexo = len(alcancaveis) == len(self.vertices)
         return {"conexo": conexo, "componentes": [alcancaveis]}
 
+    def plotarColoracao(self, coloracao):
+        """Desenha o grafo usando as cores calculadas por coloracaoGrafo()."""
+        if not self.vertices:
+            print("Grafo sem vértices para desenhar.")
+            return
+
+        # Para grafos direcionados, as setas são preservadas no desenho.
+        G = nx.DiGraph() if self.direcionado else nx.Graph()
+        G.add_nodes_from(self.vertices)
+
+        # Constrói as arestas a partir da matriz de adjacência.
+        for i, origem in enumerate(self.vertices):
+            for j, destino in enumerate(self.vertices):
+                peso = self.matriz[i][j]
+                if peso != 0:
+                    if self.direcionado:
+                        G.add_edge(origem, destino, weight=peso)
+                    elif j > i:
+                        G.add_edge(origem, destino, weight=peso)
+
+        # Converte os números das cores em cores visuais distintas.
+        paleta = [
+            "#4E79A7", "#F28E2B", "#59A14F", "#E15759", "#B07AA1",
+            "#76B7B2", "#EDC948", "#FF9DA7", "#9C755F", "#BAB0AC"
+        ]
+        cores_nos = [paleta[(coloracao[v] - 1) % len(paleta)] for v in G.nodes()]
+        pos = nx.spring_layout(G, seed=42)
+
+        plt.figure(figsize=(9, 6))
+        nx.draw_networkx_nodes(
+            G, pos, node_color=cores_nos, node_size=1200,
+            edgecolors="black", linewidths=1.2
+        )
+        nx.draw_networkx_labels(G, pos, font_size=12, font_weight="bold")
+
+        if self.direcionado:
+            nx.draw_networkx_edges(
+                G, pos, arrows=True, arrowsize=20,
+                connectionstyle="arc3,rad=0.08"
+            )
+        else:
+            nx.draw_networkx_edges(G, pos, width=1.8)
+
+        # Mostra os pesos somente se o grafo foi configurado como ponderado.
+        if self.ponderado:
+            rotulos_arestas = nx.get_edge_attributes(G, "weight")
+            nx.draw_networkx_edge_labels(G, pos, edge_labels=rotulos_arestas)
+
+        plt.title(f"Coloração do Grafo ({max(coloracao.values())} cores)")
+        plt.axis("off")
+        plt.tight_layout()
+        plt.show()
+
     def coloracaoGrafo(self):
         # Algoritmo Guloso de Coloração
         coloracao = {}  # Dicionário que guarda a cor atribuída a cada vértice (ex: {'A': 1})
 
         for vertice in self.vertices:
-            vizinhos = self.retornarVizinhos(vertice)
+            if self.direcionado:
+                # Na coloração, uma aresta cria conflito independentemente
+                # do sentido; considera vizinhos de entrada e de saída.
+                idx = self.vertices.index(vertice)
+                vizinhos = [
+                    outro for j, outro in enumerate(self.vertices)
+                    if outro != vertice and
+                    (self.matriz[idx][j] != 0 or self.matriz[j][idx] != 0)
+                ]
+            else:
+                vizinhos = self.retornarVizinhos(vertice)
 
             # Cria uma lista com as cores que os vizinhos diretos já estão usando
             cores_vizinhos = []
