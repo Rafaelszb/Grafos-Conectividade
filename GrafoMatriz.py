@@ -5,7 +5,7 @@
 
 import matplotlib.pyplot as plt
 import networkx as nx
-
+# pip install matplotlib networkx
 
 class GrafoMatriz:
     def __init__(self, ponderado=False, direcionado=False):
